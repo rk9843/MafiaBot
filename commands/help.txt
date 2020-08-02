@@ -1,0 +1,11 @@
+Hi my name is Justin Deng, I am a developer of this Discord bot and I am a dumbass!
+These are a list of the possible commands dumbass!
+
+These are the game commands.
+m!game join to join the game of mafia.
+m!game start to start the game.
+m!game role to receive a direct message with your role.
+
+These are the external commands.
+m!rules to show the rules.
+m!help to show this message.
