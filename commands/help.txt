@@ -1,5 +1,4 @@
-Hi my name is Justin Deng, I am a developer of this Discord bot and I am a dumbass!
-These are a list of the possible commands dumbass!
+These are a list of the possible commands!
 
 These are the game commands.
 m!game join to join the game of mafia.

@@ -202,7 +202,7 @@ module.exports = {
                 
                 case 'join':
                     if (gameStarted){
-                        message.reply("Too late to join slowass. Game already started dumbass!")
+                        message.reply("Too late to join. Game already started!")
                         break;
                     }
                     username = message.member.user.tag.toString();  
@@ -222,15 +222,15 @@ module.exports = {
 
                     // if (players.length == 0) {
                     //     players.push(newUser);
-                    //     message.reply("You are the first dumbass to join!")
+                    //     message.reply("You are the first player to join!")
                     //     client = message.Client;
                     //     console.log(players);
                     // } else {
                     //     if (playerExists(userid)) {
-                    //         message.reply("You are already in the game dumbass!");
+                    //         message.reply("You are already in the game!");
                     //     } else {
                     //         players.push(newUser);
-                    //         message.reply("You have been added to the game dumbass!");
+                    //         message.reply("You have been added to the game!");
                     //     }
                     // }
 
@@ -246,7 +246,7 @@ module.exports = {
                     } else if (!gameStarted) { 
                         message.channel.send(players.length + "/6 minimum players in Mafia Lobby. Waiting for more players...");
                     } else {
-                        message.reply("The game has already been started. Cya later dumbass!");
+                        message.reply("The game has already started. Join later!");
                     }
                     break;
                     

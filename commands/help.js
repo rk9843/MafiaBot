@@ -8,6 +8,6 @@ module.exports = {
         const content = fs.readFileSync(path, 'utf-8');
         message.author.send(content);
 
-        message.author.send("This is a list of all the possible commands for the mafia bot dumbass!");
+        message.author.send("This is a list of all the possible commands for the mafia bot!");
     }
 }

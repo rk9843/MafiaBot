@@ -7,7 +7,7 @@ module.exports = {
         } else {
             switch (args[0].toLowerCase()) {
                 case 'version':
-                    message.channel.send('Version 1.0.0');
+                    message.channel.send('Version 1.0.1');
                     break;
                 case 'author':
                     message.channel.send('Ryan Kim and Justin Deng');

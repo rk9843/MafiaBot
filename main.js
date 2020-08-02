@@ -44,6 +44,7 @@ client.on('message', message => {
             break;
         default:
             break;
+            message.channel.send("Invalid Arguments.");
             
     }
 });
