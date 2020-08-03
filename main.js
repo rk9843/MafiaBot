@@ -8,6 +8,8 @@ const fs = require('fs');
 
 client.commands = new Discord.Collection();
 
+require('dotenv').config()
+
 const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith('js'));
 for(const file of commandFiles){
     const command = require(`./commands/${file}`);
@@ -43,10 +45,9 @@ client.on('message', message => {
             client.commands.get('info').execute(message, args);
             break;
         default:
-            break;
             message.channel.send("Invalid Arguments.");
-            
+            break;
     }
 });
 
-client.login('NzM5MzMyMDk5NTI5NzY5MDgw.XyY6rA.YJjXjdC07afOBCE48S27s9HEFcs');
+client.login(process.env.TOKEN);

@@ -79,7 +79,8 @@ function assignRoles() {
 function startGame() {
     console.log(players);
     mafiaTurn();
-
+    doctorTurn();
+    copTurn();
 }
 
 function getPlayersByTeam(team) {
@@ -113,13 +114,13 @@ function mafiaTurn() {
     var i = 0;
     for (user in villagers) {
         
-        mafia[0].USER.send("Press m!game" + i + " to kill " + villagers[user].USERNAME)
+        mafia[0].USER.send("Press m!game " + i + " to kill " + villagers[user].USERNAME)
         dmc0 = new Discord.DMChannel(mafia[0].USER, message);
         if (dmc0.message === "0") {
             console.log('dmc0 said 0');
         }
         
-        mafia[1].USER.send("Press m!game" + i + " to kill " + villagers[user].USERNAME);
+        mafia[1].USER.send("Press m!game " + i + " to kill " + villagers[user].USERNAME);
         dmc1 = new Discord.DMChannel(mafia[1].USER, message);
         if (dmc1.message === "0") {
             console.log('dmc1 said 0');
@@ -218,21 +219,21 @@ module.exports = {
                         ROLE: null,
                     }
 
-                    players.push(newUser);
+                    // players.push(newUser);
 
-                    // if (players.length == 0) {
-                    //     players.push(newUser);
-                    //     message.reply("You are the first player to join!")
-                    //     client = message.Client;
-                    //     console.log(players);
-                    // } else {
-                    //     if (playerExists(userid)) {
-                    //         message.reply("You are already in the game!");
-                    //     } else {
-                    //         players.push(newUser);
-                    //         message.reply("You have been added to the game!");
-                    //     }
-                    // }
+                    if (players.length == 0) {
+                        players.push(newUser);
+                        message.reply("You are the first player to join!")
+                        client = message.Client;
+                        console.log(players);
+                    } else {
+                        if (playerExists(userid)) {
+                            message.reply("You are already in the game!");
+                        } else {
+                            players.push(newUser);
+                            message.reply("You have been added to the game!");
+                        }
+                    }
 
                     break;
 
@@ -259,7 +260,7 @@ module.exports = {
                     }
                     break;
                 default:
-                    message.channel.send('Invalid Arguments. dumb bitch');
+                    message.channel.send('Invalid Arguments.');
             }
         }
     }
