@@ -6,3 +6,6 @@ Version 1.0.1 (19:00 Aug. 02, 2020)
 
 Version 1.0.2 (21:00 Aug. 02, 2020)
     -Implemented a way to protect Discord Bot access Token
+
+Version 1.0.3 (04:50 Aug. 03, 2020)
+    -Implemented channel reading and writing
