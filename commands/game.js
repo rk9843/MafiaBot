@@ -48,14 +48,14 @@ function assignRoles() {
     players[2].TEAM = 'Village';
     players[2].ROLE = 'Doctor';
 
-    players[3].TEAM = 'Village';
-    players[3].ROLE = 'Cop';
+    // players[3].TEAM = 'Village';
+    // players[3].ROLE = 'Cop';
 
-    players[4].TEAM = 'Village';
-    players[4].ROLE = 'Villager';
+    // players[4].TEAM = 'Village';
+    // players[4].ROLE = 'Villager';
 
-    players[5].TEAM = 'Village';
-    players[5].ROLE = 'Villager';
+    // players[5].TEAM = 'Village';
+    // players[5].ROLE = 'Villager';
 
     // players[arr[0]].TEAM = 'Mafia';
     // players[arr[0]].ROLE = 'Mafia';
@@ -113,12 +113,25 @@ function mafiaTurn() {
 
     var i = 0;
     for (user in villagers) {
-        
+
         mafia[0].USER.send("Press m!game " + i + " to kill " + villagers[user].USERNAME)
-        dmc0 = new Discord.DMChannel(mafia[0].USER, message);
-        if (dmc0.message === "0") {
-            console.log('dmc0 said 0');
-        }
+
+        // const waitingAct = async cmd => {
+        //     try {
+        //         await require('./await.js').execute(message, args);
+        //     } catch (err) {
+        //         console.error(err);
+        //     }
+        // }
+        // ;(async () => {
+        //     const cmd = 'await';
+        //     await waitingAct(cmd);
+        // })()
+
+        // dmc0 = new Discord.DMChannel(mafia[0].USER, message);
+        // if (dmc0.message === "0") {
+        //     console.log('dmc0 said 0');
+        // }
         
         mafia[1].USER.send("Press m!game " + i + " to kill " + villagers[user].USERNAME);
         dmc1 = new Discord.DMChannel(mafia[1].USER, message);
@@ -190,6 +203,23 @@ function mafiaResponse(member){
     // });
 }
 
+function createChannels(guild){
+    var permissions = {
+        VIEW_CHANNEL: true // Denies visibility to everyone
+        // allow: 0x00000001 // Allows instant invites to be created
+    }
+    var townHall = guild.channels.create("Town Hall", permissions); //Add emojis here if desired
+    var mafiaChannel = guild.channels.create("Mafia", permissions);
+    var doctorChannel = guild.channels.create("Doctor", permissions);
+    var copChannel =guild.channels.create("Cop", permissions);
+    doctorChannel.overwritePermissions(players[0].USER ,{
+        VIEW_CHANNEL: true,
+        SEND_MESSAGES: true
+    });
+    
+
+}
+
 
 module.exports = {
     name: 'game',
@@ -198,6 +228,7 @@ module.exports = {
     execute(message, args){
         if(args[0] == null) {
             message.reply('Mafia Game!');
+            
         } else {
             switch (args[0].toLowerCase()) {
                 
@@ -219,36 +250,40 @@ module.exports = {
                         ROLE: null,
                     }
 
-                    // players.push(newUser);
+                    players.push(newUser);
 
-                    if (players.length == 0) {
-                        players.push(newUser);
-                        message.reply("You are the first player to join!")
-                        client = message.Client;
-                        console.log(players);
-                    } else {
-                        if (playerExists(userid)) {
-                            message.reply("You are already in the game!");
-                        } else {
-                            players.push(newUser);
-                            message.reply("You have been added to the game!");
-                        }
-                    }
+                    // if (players.length == 0) {
+                    //     players.push(newUser);
+                    //     message.reply("You are the first player to join!")
+                    //     client = message.Client;
+                    //     console.log(players);
+                    // } else {
+                    //     if (playerExists(userid)) {
+                    //         message.reply("You are already in the game!");
+                    //     } else {
+                    //         players.push(newUser);
+                    //         message.reply("You have been added to the game!");
+                    //     }
+                    // }
 
                     break;
 
                 case 'start':
-                    if (players.length >= 6 && !gameStarted) {
+                    if (players.length == 3 && !gameStarted) { //change back to 6
                         assignRoles();
                         message.channel.send("Mafia Game Start!");
                         console.log(players);
-                        startGame();
-
+                        guild = message.guild;
+                        createChannels(guild);
+                        //startGame();
                     } else if (!gameStarted) { 
                         message.channel.send(players.length + "/6 minimum players in Mafia Lobby. Waiting for more players...");
                     } else {
                         message.reply("The game has already started. Join later!");
                     }
+
+
+                    
                     break;
                     
                 case 'role':
@@ -260,6 +295,7 @@ module.exports = {
                     }
                     break;
                 default:
+                    // console.log(message.channel.id);
                     message.channel.send('Invalid Arguments.');
             }
         }

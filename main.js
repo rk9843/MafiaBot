@@ -17,10 +17,10 @@ for(const file of commandFiles){
     client.commands.set(command.name, command);
 }
 
+
 client.once('ready', () => {
     console.log('Mafia Bot is Online!');
 });
-
 
 client.on('message', message => {
     if(!message.content.startsWith(prefix) || message.author.bot) return;
@@ -43,6 +43,23 @@ client.on('message', message => {
             break;
         case 'info':
             client.commands.get('info').execute(message, args);
+            break;
+        case 'dmme':
+            client.commands.get('dmme').execute(message, args);
+            break;
+
+        case 'await':
+            const waitingAct = async cmd => {
+                try {
+                    await require('./commands/await.js').execute(message, args);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            ;(async () => {
+                const cmd = 'await';
+                await waitingAct(cmd);
+            })()
             break;
         default:
             message.channel.send("Invalid Arguments.");
