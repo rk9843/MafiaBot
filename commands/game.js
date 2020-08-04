@@ -2,11 +2,13 @@ const Discord = require('discord.js');
 const filter = m => m.content.startsWith("m!");
 const options = {max: 1, time: 6000, errors: ["time"]};
 
-players = [];
-
-gameStarted = false;
-
+var players = [];
+var gameStarted = false;
 var arr = [];
+var docChannelID;
+var mafiaChannelID;
+var copChannelID;
+var townHallChannelID;
 
 
 function rng() {
@@ -39,17 +41,17 @@ function findPlayer(ID) {
 function assignRoles() {
     rng();
 
-    players[0].TEAM = 'Mafia';
-    players[0].ROLE = 'Mafia';
+    // players[2].TEAM = 'Mafia';
+    // players[2].ROLE = 'Mafia';
 
+    players[0].TEAM = 'Village';
+    players[0].ROLE = 'Doctor';
+    
     players[1].TEAM = 'Mafia';
     players[1].ROLE = 'Mafia';
-    
-    players[2].TEAM = 'Village';
-    players[2].ROLE = 'Doctor';
 
-    // players[3].TEAM = 'Village';
-    // players[3].ROLE = 'Cop';
+    players[2].TEAM = 'Village';
+    players[2].ROLE = 'Cop';
 
     // players[4].TEAM = 'Village';
     // players[4].ROLE = 'Villager';
@@ -76,17 +78,20 @@ function assignRoles() {
     // players[arr[5]].ROLE = 'Villager';
 }
 
-function startGame() {
-    console.log(players);
-    mafiaTurn();
-    doctorTurn();
-    copTurn();
+function getAlivePlayers() {
+    retArr = [];
+    for (user in players) {
+        if (players[user].ALIVE === true) {
+            retArr.push(players[user]);
+        }
+    }
+    return retArr;
 }
 
 function getPlayersByTeam(team) {
     retArr = [];
     for (user in players) {
-        if (players[user].TEAM === team) {
+        if (players[user].TEAM === team && players[user].ALIVE === true) {
             retArr.push(players[user]);
         }
     }
@@ -96,127 +101,233 @@ function getPlayersByTeam(team) {
 function getPlayersByRole(role) {
     retArr = [];
     for (user in players) {
-        if (players[user].ROLE === role) {
+        if (players[user].ROLE === role && players[user].ALIVE === true) {
             retArr.push(players[user]);
         }
     }
     return retArr;
 }
 
-function mafiaTurn() {
+async function startGame() {
+    // console.log(players);
+    await mafiaTurn();
+    await doctorTurn();
+    await copTurn();
+}
+
+async function mafiaTurn() {
     villagers = getPlayersByTeam('Village');
     mafia = getPlayersByTeam('Mafia');
-    for (user in mafia) {
-        mafia[user].USER.send("The two mafia members are " + mafia[0].USERNAME + " and " + mafia[1].USERNAME);
-        mafia[user].USER.send("Who do you wish to target?");
-    }
 
+    let counter = 0;
+    let filter = m => !m.author.bot;
+    let collector = message.channel.createMessageCollector(filter, { time: 30000 });
+    // let destination = mafiaChannel;  // Use this code when 
+    let destination = client.channels.cache.get('739656072679391383');
+
+    destination.send("Mafia, Wake up.");
+    destination.send("You have 30 seconds to decide. Who do you wish to target?");
+    
     var i = 0;
     for (user in villagers) {
-
-        mafia[0].USER.send("Press m!game " + i + " to kill " + villagers[user].USERNAME)
-
-        // const waitingAct = async cmd => {
-        //     try {
-        //         await require('./await.js').execute(message, args);
-        //     } catch (err) {
-        //         console.error(err);
-        //     }
-        // }
-        // ;(async () => {
-        //     const cmd = 'await';
-        //     await waitingAct(cmd);
-        // })()
-
-        // dmc0 = new Discord.DMChannel(mafia[0].USER, message);
-        // if (dmc0.message === "0") {
-        //     console.log('dmc0 said 0');
-        // }
-        
-        mafia[1].USER.send("Press m!game " + i + " to kill " + villagers[user].USERNAME);
-        dmc1 = new Discord.DMChannel(mafia[1].USER, message);
-        if (dmc1.message === "0") {
-            console.log('dmc1 said 0');
-        }
-
-        i++;
-
-    }
-    // mafiaResponse(mafia[0]);
-    
-    
-    // client.on('message', message => {
-    //     console.log(message);
-    //     if(!message.content.startsWith(prefix) || message.author.bot) return;
-    //     switch (message.content) {
-    //         case "0" :
-                
-    //             break;
-    //         case "1":
-
-    //             break;
-    //         default:
-    //             message.channel.send("Invalid Argument.");
-    //     }
-    // });
-}
-
-function doctorTurn(){
-    doctor = getPlayersByRole('Doctor');
-    doctor[user].USER.send("Hello Doctor, Who do you wish to heal?");   
-    var i = 0;
-    for (user in players) {
-        doctor[0].USER.send("Press " + i + " to heal " + players[user].USERNAME);
+        destination.send("Press " + i + " to kill " + villagers[user].USERNAME);
         i++;
     }
-}
 
-function copTurn() {
-    Cop = getPlayersByRole('Cop');
-    Cop.USER.send("You are the cop. You may investigate one person to see which team they are on.")
-    var i = 0
-    for (user in players) {
-        if (player[user].USERNAME !== Cop.USERNAME) {
-            Cop.USER.send("Press " + i + " to investigate " + players[user]);
-            i++;
+    collector.on('collect', m => {
+        console.log(`Collected ${m.content}`);
+        destination.send("You have selected to kill " + villagers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: villager selection ambiguity case string not int within range
+        killPlayer(villagers[parseInt(m.content, 10)]);
+        counter ++;
+        if (counter === 1) {
+            collector.stop();
         }
-    }
-}
-
-function mafiaResponse(member){
-    // let response = member.COLLECTOR.on("collect", message => {
-    // console.log(response);
-    //     switch (message) {
-    //         case '0':
-    //             console.log('0');
-    //             break;
-    //         case '1':
-    //             console.log('1');
-    //             break;
-    //         case '2':
-    //             console.log('2');
-    //             break; 
-    //         case '3':
-    //             console.log('3');
-    //             break;
-    //     }
-    // });
-}
-
-function createChannels(guild){
-    var permissions = {
-        VIEW_CHANNEL: true // Denies visibility to everyone
-        // allow: 0x00000001 // Allows instant invites to be created
-    }
-    var townHall = guild.channels.create("Town Hall", permissions); //Add emojis here if desired
-    var mafiaChannel = guild.channels.create("Mafia", permissions);
-    var doctorChannel = guild.channels.create("Doctor", permissions);
-    var copChannel =guild.channels.create("Cop", permissions);
-    doctorChannel.overwritePermissions(players[0].USER ,{
-        VIEW_CHANNEL: true,
-        SEND_MESSAGES: true
     });
+    collector.on('end', collected => {
+        destination.send("Ending Mafia Turn... go back to sleep.");
+    });
+
+}
+
+function killPlayer(user) {
+    user.ALIVE = false;
+    client.channels.cache.get(townHallChannelID).send("ur mom");
+    client.channels.cache.get(townHallChannelID).updateOverwrite(user.USER, { SEND_MESSAGES: false } );
     
+}
+
+async function doctorTurn() {
+    doctor = getPlayersByRole('Doctor');
+    alivePlayers = getAlivePlayers();
+
+    // let destination = doctorChannel;  // Use this code when 
+    let destination = client.channels.cache.get('739656427383160863');
+    
+    destination.send("Doctor, wake up.");
+    destination.send("You have 30 seconds to decide. Who do you wish to save tonight?");
+    
+    var i = 0;
+    for (user in alivePlayers) {
+        destination.send("Press " + i + " to heal " + alivePlayers[user].USERNAME);
+        i++;
+    }
+
+    collector.on('collect', m => {
+        console.log(`Collected ${m.content}`);
+        destination.send("You have selected to save " + alivePlayers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: player selection ambiguity case string not int within range, AND doctor self heal limit to one
+        savePlayer(alivePlayers[parseInt(m.content, 10)]);
+        counter ++;
+        if (counter === 1) {
+            collector.stop();
+        }
+    });
+    collector.on('end', collected => {
+        destination.send("Ending Doctor Turn... go back to sleep.");
+    });
+
+}
+
+function savePlayer(user) {
+    user.ALIVE = true;
+}
+
+async function copTurn() {
+    Cop = getPlayersByRole('Cop');
+    alivePlayers = getAlivePlayers();
+
+    // let destination = doctorChannel;  // Use this code when 
+    let destination = client.channels.cache.get('739656427383160863');
+    
+    destination.send("Cop, wake up.");
+    destination.send("You are the cop. You may investigate one person to see which team they are on.")
+
+    var i = 0;
+    for (user in alivePlayers) {
+        destination.send("Press " + i + " to investigate " + alivePlayers[user].USERNAME);
+        i++;
+    }
+
+    collector.on('collect', m => {
+        console.log(`Collected ${m.content}`);
+        destination.send("You have selected to investigate " + alivePlayers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: player selection ambiguity case string not int within range, AND doctor self heal limit to one
+        destination.send(investigatePlayer(alivePlayers[parseInt(m.content, 10)]));
+        counter ++;
+        if (counter === 1) {
+            collector.stop();
+        }
+    });
+    collector.on('end', collected => {
+        destination.send("Ending Cop Turn... go back to sleep.");
+    });
+
+}
+
+function investigatePlayer(user) {
+    return user.TEAM;
+}
+
+async function createChannels(guild){
+    var doctor = getPlayersByRole('Doctor')[0];
+    var doctorPermissions = {
+        type: 'text',
+        permissionOverwrites: [
+            {
+                id: guild.id,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: doctor.ID,
+                allow: ['VIEW_CHANNEL'],
+            },
+        ],
+    }
+    var cop = getPlayersByRole('Cop')[0];
+    var copPermissions = {
+        type: 'text',
+        permissionOverwrites: [
+            {
+                id: guild.id,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: cop.ID,
+                allow: ['VIEW_CHANNEL'],
+            },
+        ],
+    }
+    var mafia = getPlayersByRole('Mafia');
+    var mafiaPermissions = {
+        type: 'text',
+        permissionOverwrites: [
+            {
+                id: guild.id,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: mafia[0].ID,
+                allow: ['VIEW_CHANNEL'],
+            },
+            // {
+            //     id: mafia[1].ID,
+            //     allow: ['VIEW_CHANNEL'],  TODO: add back in
+            // },
+        ],
+    }
+    var townHallPermissions = {
+        type: 'text',
+        permissionOverwrites: [
+            {
+                id: guild.id,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: players[0].ID,
+                allow: ['VIEW_CHANNEL'],
+            },
+            {
+                id: players[1].ID,
+                allow: ['VIEW_CHANNEL'],
+            },
+            {
+                id: players[2].ID,
+                allow: ['VIEW_CHANNEL'],
+            },
+            // {
+            //     id: players[3].ID,
+            //     allow: ['VIEW_CHANNEL'],
+            // },
+            // {
+            //     id: players[4].ID,
+            //     allow: ['VIEW_CHANNEL'],
+            // },
+            // {
+            //     id: players[5]].ID,
+            //     allow: ['VIEW_CHANNEL'],
+            // },
+        ]
+    }
+
+    async function getDocChannelID() {
+        const docChannel = await guild.channels.create("doctor", doctorPermissions);
+        return docChannel.id;
+    }
+    async function getMafiaChannelID() {
+        const mafiaChannel = await guild.channels.create("mafia", mafiaPermissions);
+        return mafiaChannel.id;
+    }
+    async function getCopChannelID() {
+        const copChannel = await guild.channels.create("cop", copPermissions);
+        return copChannel.id;
+    }
+    async function getTownHallChannelID() {
+        const townHallChannel = await guild.channels.create("town hall", townHallPermissions);
+        return townHallChannel.id;
+    }
+
+    docChannelID = await getDocChannelID();
+    mafiaChannelID = await getMafiaChannelID();
+    copChannelID = await getCopChannelID();
+    townHallChannelID = await getTownHallChannelID();
 
 }
 
@@ -228,6 +339,8 @@ module.exports = {
     execute(message, args){
         if(args[0] == null) {
             message.reply('Mafia Game!');
+            console.log(players[0].username);
+            killPlayer(players[0]); //TODO: remove after done testing
             
         } else {
             switch (args[0].toLowerCase()) {
@@ -248,6 +361,7 @@ module.exports = {
                         COLLECTOR : collector,
                         TEAM: null,
                         ROLE: null,
+                        ALIVE: true
                     }
 
                     players.push(newUser);
@@ -265,14 +379,14 @@ module.exports = {
                     //         message.reply("You have been added to the game!");
                     //     }
                     // }
-
                     break;
 
                 case 'start':
                     if (players.length == 3 && !gameStarted) { //change back to 6
+                        gameStarted = true;
                         assignRoles();
                         message.channel.send("Mafia Game Start!");
-                        console.log(players);
+                        //console.log(players);
                         guild = message.guild;
                         createChannels(guild);
                         //startGame();
@@ -280,10 +394,7 @@ module.exports = {
                         message.channel.send(players.length + "/6 minimum players in Mafia Lobby. Waiting for more players...");
                     } else {
                         message.reply("The game has already started. Join later!");
-                    }
-
-
-                    
+                    }                    
                     break;
                     
                 case 'role':
@@ -294,6 +405,7 @@ module.exports = {
                         message.author.send("You're not in the game. Do 'm!game join' to join the game.");
                     }
                     break;
+
                 default:
                     // console.log(message.channel.id);
                     message.channel.send('Invalid Arguments.');

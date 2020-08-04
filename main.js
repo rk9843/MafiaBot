@@ -32,34 +32,27 @@ client.on('message', message => {
         case 'ping':
             client.commands.get('ping').execute(message, args);
             break;
+
         case 'game':
             client.commands.get('game').execute(message, args);
             break;
+
         case 'help':
             client.commands.get('help').execute(message, args);
             break;
+
         case 'rules':
             client.commands.get('rules').execute(message, args);
             break;
+
         case 'info':
             client.commands.get('info').execute(message, args);
             break;
-        case 'mafia':
-            client.commands.get('mafia').execute(message, args);
+
+        case 'quit':
+            client.commands.get('quit').execute(message, args);
             break;
-        // case 'dmme':
-        //     const dmAct = async cmd => {
-        //         try {
-        //             await require('./commands/dmme.js').execute(message, args);
-        //         } catch (err) {
-        //             console.error(err)
-        //         }
-        //     }
-        //     ;(async () => {
-        //         const cmd = 'dmme';
-        //         await dmAct(cmd);
-        //     })()
-        //     break;
+
         default:
             message.channel.send("Invalid Arguments.");
             break;
@@ -69,10 +62,3 @@ client.on('message', message => {
 client.login(process.env.TOKEN);
 
 global.client = client;
-
-// module.exports = {
-//     getClient: () => {
-//         return client;
-//     },
-//     CLIENT: this.client
-// }
