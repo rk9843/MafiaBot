@@ -14,3 +14,7 @@ Version 1.0.4 (01:50 Aug. 04, 2020)
     -Implmented channel writing from bot
     -Implmeneted channels with permissions
     -Implemented kill player feature
+
+Version 1.0.5 (04:00 Aug. 05, 2020)
+    -Updated help commands to send embed message instead of txt file
+    -Touched up some game logic bugs when running game start command

@@ -1,6 +1,6 @@
 {
   "name": "mafia-bot",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A Discord Bot to play Mafia",
   "main": "main.js",
   "scripts": {

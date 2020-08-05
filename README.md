@@ -9,4 +9,4 @@ To get started, Click on [MafiaBot](https://discord.com/oauth2/authorize?client_
 # Credits
 Project by Ryan Kim and Justin Deng
 
-MafiaBot Version 1.0.4
+MafiaBot Version 1.0.5

@@ -108,11 +108,19 @@ function getPlayersByRole(role) {
     return retArr;
 }
 
-async function startGame() {
-    // console.log(players);
+function startGame(message) {
+    gameStarted = true;
+    assignRoles();
+    guild = message.guild;
+    createChannels(guild);
+    playGame();
+}
+
+async function playGame() {  // TODO: Loop this under conditionals until mafia win or village win
     await mafiaTurn();
     await doctorTurn();
     await copTurn();
+    await dayTime();
 }
 
 async function mafiaTurn() {
@@ -121,9 +129,8 @@ async function mafiaTurn() {
 
     let counter = 0;
     let filter = m => !m.author.bot;
-    let collector = message.channel.createMessageCollector(filter, { time: 30000 });
-    // let destination = mafiaChannel;  // Use this code when 
-    let destination = client.channels.cache.get('739656072679391383');
+    let destination = client.channels.cache.get(mafiaChannelID);
+    let collector = destination.createMessageCollector(filter, { time: 30000 });
 
     destination.send("Mafia, Wake up.");
     destination.send("You have 30 seconds to decide. Who do you wish to target?");
@@ -160,8 +167,10 @@ async function doctorTurn() {
     doctor = getPlayersByRole('Doctor');
     alivePlayers = getAlivePlayers();
 
-    // let destination = doctorChannel;  // Use this code when 
-    let destination = client.channels.cache.get('739656427383160863');
+    let counter = 0;
+    let filter = m => !m.author.bot;
+    let destination = client.channels.cache.get(docChannelID);
+    let collector = destination.createMessageCollector(filter, { time: 30000 });
     
     destination.send("Doctor, wake up.");
     destination.send("You have 30 seconds to decide. Who do you wish to save tonight?");
@@ -195,9 +204,11 @@ async function copTurn() {
     Cop = getPlayersByRole('Cop');
     alivePlayers = getAlivePlayers();
 
-    // let destination = doctorChannel;  // Use this code when 
-    let destination = client.channels.cache.get('739656427383160863');
-    
+    let counter = 0;
+    let filter = m => !m.author.bot;
+    let destination = client.channels.cache.get(copChannelID);
+    let collector = destination.createMessageCollector(filter, { time: 30000 });
+
     destination.send("Cop, wake up.");
     destination.send("You are the cop. You may investigate one person to see which team they are on.")
 
@@ -224,6 +235,10 @@ async function copTurn() {
 
 function investigatePlayer(user) {
     return user.TEAM;
+}
+
+async function dayTime() {
+    
 }
 
 async function createChannels(guild){
@@ -339,12 +354,8 @@ module.exports = {
     execute(message, args){
         if(args[0] == null) {
             message.reply('Mafia Game!');
-            console.log(players[0].username);
-            killPlayer(players[0]); //TODO: remove after done testing
-            
         } else {
             switch (args[0].toLowerCase()) {
-                
                 case 'join':
                     if (gameStarted){
                         message.reply("Too late to join. Game already started!")
@@ -364,7 +375,7 @@ module.exports = {
                         ALIVE: true
                     }
 
-                    players.push(newUser);
+                    players.push(newUser);  // TODO: Remove after testing
 
                     // if (players.length == 0) {
                     //     players.push(newUser);
@@ -382,14 +393,9 @@ module.exports = {
                     break;
 
                 case 'start':
-                    if (players.length == 3 && !gameStarted) { //change back to 6
-                        gameStarted = true;
-                        assignRoles();
+                    if (players.length == 3 && !gameStarted) {  // TODO: change back to >= 6 after testing
                         message.channel.send("Mafia Game Start!");
-                        //console.log(players);
-                        guild = message.guild;
-                        createChannels(guild);
-                        //startGame();
+                        startGame(message);
                     } else if (!gameStarted) { 
                         message.channel.send(players.length + "/6 minimum players in Mafia Lobby. Waiting for more players...");
                     } else {
@@ -409,6 +415,7 @@ module.exports = {
                 default:
                     // console.log(message.channel.id);
                     message.channel.send('Invalid Arguments.');
+                    break;
             }
         }
     }
