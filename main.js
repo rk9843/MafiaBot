@@ -1,9 +1,6 @@
 const Discord = require('discord.js');
-
 const client = new Discord.Client();
-
 const prefix = 'm!';
-
 const fs = require('fs');
 
 client.commands = new Discord.Collection();
@@ -52,6 +49,10 @@ client.on('message', message => {
         case 'quit':
             client.commands.get('quit').execute(message, args);
             break;
+
+        // case 'delete':
+        //     client.commands.get('delete').execute(message, args);
+        //     break;
 
         default:
             message.channel.send("Invalid Arguments.");

@@ -18,3 +18,7 @@ Version 1.0.4 (01:50 Aug. 04, 2020)
 Version 1.0.5 (04:00 Aug. 05, 2020)
     -Updated help commands to send embed message instead of txt file
     -Touched up some game logic bugs when running game start command
+
+Version 1.0.6 (23:40 Aug. 05, 2020)
+    -Updated gameplay loop
+    -Resolved deprecated promise warnings
