@@ -1,3 +1,6 @@
+/*
+ * Constants and Variables 
+ */
 
 const Discord = require('discord.js');
 const filter = m => m.content.startsWith("m!");
@@ -5,7 +8,7 @@ const options = {max: 1, time: 6000, errors: ["time"]};
 
 var players = [];
 var gameStarted = false;
-var lastDeath;
+var lastDeath = null;
 var arr = [];
 var docChannel;
 var mafiaChannel;
@@ -13,14 +16,22 @@ var copChannel;
 var townHallChannel;
 
 
-//Helper functions
-////////////////////////////////
-///////////////////////////////
+/*
+ * Helper functions 
+ */
+
+/**
+ * A simple sleeper function
+ * @param {int} ms 
+ */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function rng() {
+/**
+ * A helper shuffle function for when assigning roles
+ */
+function rng() {  // TODO: Increase the hardcoded value of 6 players cap for future when there are more than 6 players
     while (arr.length < 6) {
         var r = Math.floor(Math.random() * 6);
         if (arr.indexOf(r) === -1) {
@@ -28,7 +39,11 @@ function rng() {
         }
     }
 }
-    
+
+/**
+ * Returns a boolean statement given a Discord User's unique ID to see if they are in the list of players
+ * @param {int} ID 
+ */
 function playerExists(ID) {
     for (user in players) {
         if (players[user].ID === ID) {
@@ -38,7 +53,11 @@ function playerExists(ID) {
     return false;
 }
 
-function findPlayer(ID) {
+/**
+ * Returns a Discord User given a Discord User's unique ID is in the list of players
+ * @param {int} ID 
+ */
+function findPlayer(ID) {  // TODO: Discuss if line 66 is necessary since the given condition for findPlayer is that they are within players
     for (user in players) {
         if (players[user].ID === ID) {
             return players[user];
@@ -47,7 +66,10 @@ function findPlayer(ID) {
     console.log("This player could not be found.")
 }
 
-function assignRoles() {
+/**
+ * Assigns each player in Players roles accordingly using a shuffled array
+ */
+function assignRoles() {  // TODO: After testing, remove the hardcoded roles and resume shuffling AND figure out what to do in games of more than 6 players
     rng();
 
     // players[2].TEAM = 'Mafia';
@@ -87,6 +109,9 @@ function assignRoles() {
     // players[arr[5]].ROLE = 'Villager';
 }
 
+/**
+ * Returns an array of players that are alive regardless of team or role
+ */
 function getAlivePlayers() {
     retArr = [];
     for (user in players) {
@@ -97,6 +122,10 @@ function getAlivePlayers() {
     return retArr;
 }
 
+/**
+ * Returns an array of players of a specified team given that team's name
+ * @param {newUser.TEAM} team 
+ */
 function getPlayersByTeam(team) {
     retArr = [];
     for (user in players) {
@@ -107,6 +136,10 @@ function getPlayersByTeam(team) {
     return retArr;
 }
 
+/**
+ * Returns an array of players of a specified role given that role's name
+ * @param {newUser.ROLE} role 
+ */
 function getPlayersByRole(role) {
     retArr = [];
     for (user in players) {
@@ -117,22 +150,32 @@ function getPlayersByRole(role) {
     return retArr;
 }
 
+/**
+ * Sets the player's ALIVE property to false, essentially "killing" them
+ * Does NOT remove the player from the players array
+ * @param {newUser} user 
+ */
 function killPlayer(user) {
+    if (user === null) {
+        return;
+    }
     lastDeath = user.USERNAME;
     user.ALIVE = false;
     client.channels.cache.get(townHallChannel.id).updateOverwrite(user.USER, { SEND_MESSAGES: false } );   
 }
 
-function savePlayer(user) {
-    user.ALIVE = true;
-    lastDeath = null;
-}
-
+/**
+ * Returns a specified player's team
+ * @param {newUser} user 
+ */
 function investigatePlayer(user) {
     return user.TEAM;
 }
 
-function checkWin() { //returns -1 for mafia win, 1 for village win, 0 for no win yet
+/**
+ * Returns -1 for mafia win, 1 for village win, 0 for no win yet
+ */
+function checkWin() {
     mafia = getPlayersByTeam('Mafia');
     village = getPlayersByTeam('Village');
 
@@ -148,6 +191,9 @@ function checkWin() { //returns -1 for mafia win, 1 for village win, 0 for no wi
 
 }
 
+/**
+ * TODO: Fill this out
+ */
 function executeTasks() {
     var tasks = Array.prototype.concat.apply([], arguments);
     var task = tasks.shift();
@@ -157,15 +203,25 @@ function executeTasks() {
     });
 }
 
-//Gameplay functions
-////////////////////////////////////////
-////////////////////////////////////////
 
+/*
+ * Gameplay functions 
+ */
+
+/**
+ * Starts up the game
+ * @param {Discord.Message} message 
+ */
 async function startGame(message) {
+    gameStarted = true;
+    assignRoles();
+    guild = message.guild;
+
+    let destination = client.channels.cache.get(townHallChannel.id);
+    destination.send("As this is the first night, nothing will happen. Feel free to introduce yourselves to one another. One minute until the game starts.");  // TODO: Generate a bypass condition in case people wish not to talk with each other for that one minute duration
+    await sleep("60000");
+    
     try {
-        gameStarted = true;
-        assignRoles();
-        guild = message.guild;
         await createChannels(guild);
         await playGame();
     } catch (error) {
@@ -173,7 +229,11 @@ async function startGame(message) {
     }
 }
 
-async function createChannels(guild) {
+/**
+ * // TODO: Fill this out
+ * @param {Discord.Guild} guild 
+ */
+async function createChannels(guild) {  // TODO: See if we can simplify the permissionOverwrites for all other potential players
     var mafia = getPlayersByRole('Mafia');
     var mafiaPermissions = {
         type: 'text',
@@ -298,13 +358,17 @@ async function createChannels(guild) {
 
 }
 
-async function playGame() {
+/**
+ * Checks to see if the game end condition is fulfilled
+ * Loops until end condition is met
+ */
+async function playGame() {  // TODO: Loop this under conditionals until mafia win or village win
     let destination = client.channels.cache.get(townHallChannel.id);
     destination.send("Everyone, Go to sleep.");
     await sleep(3000);
 
     // var winCon = checkWin();
-    // while (winCon == 0) {  // TODO: Loop this under conditionals until mafia win or village win.
+    // while (winCon == 0) {
     //     await mafiaTurn();
     //     winCon = checkWin();
     // }
@@ -313,44 +377,67 @@ async function playGame() {
 
 }
 
-async function mafiaTurn() {
+/**
+ * This is the mafia's turn
+ * Creates a message collector which waits until kill!<target> is called
+ * At the end of the mafia's turn, it passes it's victim to the doctor's turn and starts it
+ */
+async function mafiaTurn() {  // TODO: Case if kill!<args> is called and <args> is invalid (A try/catch should work)
     villagers = getPlayersByTeam('Village');
     mafia = getPlayersByTeam('Mafia');
+    target = null;
 
-    let counter = 0;
     let filter = m => !m.author.bot;
     let destination = client.channels.cache.get(mafiaChannel.id);
-    let collector = destination.createMessageCollector(filter, { time: 60000 });
+    let collector = destination.createMessageCollector(filter, { time: 30000 });
 
     destination.send("Mafia, Wake up.");
-    destination.send("You have 60 seconds to decide. Who do you wish to target?");
+    destination.send("You have 30 seconds to decide. Who do you wish to target?");
     
     var i = 0;
     for (user in villagers) {
-        destination.send("Press " + i + " to kill " + villagers[user].USERNAME);
+        destination.send("Type kill!" + i + " to kill " + villagers[user].USERNAME);
         i++;
     }
 
     collector.on('collect', m => {
         console.log(`Collected ${m.content}`);
-        destination.send("You have selected to kill " + villagers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: villager selection ambiguity case string not int within range
-        killPlayer(villagers[parseInt(m.content, 10)]);
-        counter ++;
-        if (counter === 1) {
-            collector.stop();
+        if (m.content.startsWith("kill!")) {
+            target = villagers[parseInt(m.content.slice(5), 10)];
+            destination.send("Target set to " + target.USERNAME + ".");
         }
     });
+
     collector.on('end', collected => {
-        (async () => { await destination.send("Ending Mafia Turn... go back to sleep."); await doctorTurn(); })();
+        destination.send("Time Is up.");
+
+        if (target === null) {
+            target = villagers[0];
+            destination.send("You have failed to select a player. By default, " + target.USERNAME + " will be killed tonight.");
+        }
+
+        destination.send("Killing " + target.USERNAME + " tonight.");
+        destination.send("End of Mafia Turn... go back to sleep.");
+
+        (async () => {
+            await doctorTurn(target);
+        })();
     });
     
 }
 
-async function doctorTurn() {
+/**
+ * This is the doctor's turn
+ * Creates a message collector which waits until save!<target> is called
+ * If the healing target is the same as the mafia's target, it passes nothing to the cop's turn and starts it
+ * Otherwise, it passes the mafia's target to the cop's turn and starts it
+ * @param {newUser} mafiaTarget 
+ */
+async function doctorTurn(mafiaTarget) {  // TODO: Case if save!<args> is called and <args> is invalid (A try/catch should work)
     doctor = getPlayersByRole('Doctor');
     alivePlayers = getAlivePlayers();
+    target = null;
 
-    let counter = 0;
     let filter = m => !m.author.bot;
     let destination = client.channels.cache.get(docChannel.id);
     let collector = destination.createMessageCollector(filter, { time: 30000 });
@@ -360,30 +447,56 @@ async function doctorTurn() {
     
     var i = 0;
     for (user in alivePlayers) {
-        destination.send("Press " + i + " to heal " + alivePlayers[user].USERNAME);
+        destination.send("Type heal!" + i + " to heal " + alivePlayers[user].USERNAME);
         i++;
     }
 
     collector.on('collect', m => {
         console.log(`Collected ${m.content}`);
-        destination.send("You have selected to save " + alivePlayers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: player selection ambiguity case string not int within range, AND doctor self heal limit to one
-        savePlayer(alivePlayers[parseInt(m.content, 10)]);
-        counter ++;
-        if (counter === 1) {
-            collector.stop();
+        if (m.content.startsWith("heal!")) {
+            target = alivePlayers[parseInt(m.content.slice(5), 10)];
+            destination.send("Target set to " + target.USERNAME + ".");
+            console.log("Target set to " + target.USERNAME);
         }
     });
+
     collector.on('end', collected => {
-        (async () => { await destination.send("Ending Doctor Turn... go back to sleep."); await copTurn(); })();
+        destination.send("Time Is up.");
+        
+        if (target === null) {
+            target = alivePlayers[0];
+            destination.send("You have failed to select a player. By default, " + target.USERNAME + " will be saved tonight.");
+        }
+        
+        destination.send("Saving " + target.USERNAME + " tonight."); // TODO:doctor self heal limit to one
+        destination.send("End of Doctor Turn... go back to sleep.");
+
+        if (mafiaTarget === target) {
+            (async () => {
+                await copTurn(null);
+            })();
+        } else {
+            (async () => {
+                await copTurn(mafiaTarget);
+            })();
+        }
+
     });
 
 }
 
-async function copTurn() {
+/**
+ * This is the cop's turn
+ * Creates a message collector which waits until check!<target> is called
+ * check!<target> then returns the target's team
+ * Then it kills the mafia's target
+ * @param {newUser} deathTarget 
+ */
+async function copTurn(deathTarget) {  // TODO: Case if check!<args> is called and <args> is invalid (A try/catch should work)
     Cop = getPlayersByRole('Cop');
     alivePlayers = getAlivePlayers();
+    target = null;
 
-    let counter = 0;
     let filter = m => !m.author.bot;
     let destination = client.channels.cache.get(copChannel.id);
     let collector = destination.createMessageCollector(filter, { time: 30000 });
@@ -393,39 +506,59 @@ async function copTurn() {
 
     var i = 0;
     for (user in alivePlayers) {
-        destination.send("Press " + i + " to investigate " + alivePlayers[user].USERNAME);
+        destination.send("Type check!" + i + " to investigate " + alivePlayers[user].USERNAME);
         i++;
     }
 
     collector.on('collect', m => {
         console.log(`Collected ${m.content}`);
-        destination.send("You have selected to investigate " + alivePlayers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: player selection ambiguity case string not int within range, AND doctor self heal limit to one
-        destination.send(alivePlayers[parseInt(m.content, 10)].USERNAME + " is on team " + investigatePlayer(alivePlayers[parseInt(m.content, 10)]));
-        counter ++;
-        if (counter === 1) {
-            collector.stop();
+        if (m.content.startsWith("check!")) {
+            target = alivePlayers[parseInt(m.content.slice(6), 10)];
+            destination.send("Target set to " + target.USERNAME + ".");
+            console.log("Target set to " + target.USERNAME);
         }
     });
+
     collector.on('end', collected => {
-        (async () => { await destination.send("Ending Cop Turn... go back to sleep."); await dayTime(); })();
+        destination.send("Time is up.");
+
+        if (target === null) {
+            target = alivePlayers[0];
+            destination.send("You have failed to select a player. By default, " + target.USERNAME + " will be investigated tonight.");
+        }
+        
+        destination.send("Investigating " + target.USERNAME + " tonight.");
+        destination.send(target.USERNAME + " is on team " + investigatePlayer(target));
+        destination.send("End of Cop Turn... go back to sleep.");
+
+        killPlayer(deathTarget);
+
+        (async () => {
+            await dayTime();
+        })();
     });
 
 }
 
-async function dayTime() {
+/**
+ * TODO: Fill this out
+ */
+async function dayTime() {  // TODO: Create a collector for the 2 minutes during general discussion for the daytime. Follow structure used in <ROLE>Turn methods
     let destination = client.channels.cache.get(townHallChannel.id);
-    let collector = destination.createMessageCollector(filter, { time: 30000 });
+    let collector = destination.createMessageCollector(filter, { time: 120000 });
+    
     var alivePlayers = getAlivePlayers();
     var i = 0;
 
     await sleep(10000);
-    destination.send("Good morning");
-    if (lastDeath == null){
+    destination.send("Everybody, Wake up.");
+    if (lastDeath === null) {
         destination.send("Luckily, no one was killed last night.")
     } else {
         destination.send("Unfortunately, " + lastDeath + " was killed last night.");
         lastDeath = null;
     }
+
     destination.send("You now have two minutes to decide on a course of action. A simple majority is needed to execute someone. If a majority can not be reached, no one will be executed.")
     for (player in alivePlayers) {
         destination.send("Press " + i + " to kill " + alivePlayers[player].USERNAME);
@@ -433,6 +566,9 @@ async function dayTime() {
 
 }
 
+/**
+ * TODO: Fill this out
+ */
 async function deleteChannels() {
     let destination = client.channels.cache.get(townHallChannel.id);
     destination.send("The text channels will be deleted in 5 seconds");
@@ -449,6 +585,9 @@ async function deleteChannels() {
 }
 
 
+/**
+ * Reads and executes m!game <args> commands
+ */
 module.exports = {
     name: 'game',
     desc: "The Mafia Game",    
@@ -481,7 +620,7 @@ module.exports = {
                         ALIVE: true
                     }
 
-                    players.push(newUser);  // TODO: Remove after testing
+                    players.push(newUser);  // TODO: Remove after testing an add back in the code beneath
 
                     // if (players.length == 0) {
                     //     players.push(newUser);
@@ -529,11 +668,9 @@ module.exports = {
                     break;
 
                 default:
-                    // console.log(message.channel.id);
                     message.channel.send('Invalid Arguments.');
                     break;
             }
         }
     }
 }
-

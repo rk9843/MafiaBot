@@ -7,7 +7,7 @@ module.exports = {
         } else {
             switch (args[0].toLowerCase()) {
                 case 'version':
-                    message.channel.send('Version 1.0.7');
+                    message.channel.send('Version 1.0.8');  // TODO: Update version through getting the version value in the json file
                     break;
 
                 case 'author':
