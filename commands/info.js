@@ -7,7 +7,7 @@ module.exports = {
         } else {
             switch (args[0].toLowerCase()) {
                 case 'version':
-                    message.channel.send('Version 1.0.6');
+                    message.channel.send('Version 1.0.7');
                     break;
 
                 case 'author':

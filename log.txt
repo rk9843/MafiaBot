@@ -22,3 +22,7 @@ Version 1.0.5 (04:00 Aug. 05, 2020)
 Version 1.0.6 (23:40 Aug. 05, 2020)
     -Updated gameplay loop
     -Resolved deprecated promise warnings
+
+Version 1.0.7 (03:45 Aug. 07, 2020)
+    -Resolved <ROLE>turn functions from running in parallel to running in series
+    -Added sleep functions in gamelogic to pace game speed

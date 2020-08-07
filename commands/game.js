@@ -167,11 +167,6 @@ async function startGame(message) {
         assignRoles();
         guild = message.guild;
         await createChannels(guild);
-        var winCon = checkWin();
-        // while (winCon == 0) {  // TODO: Loop this under conditionals until mafia win or village win.
-        //     await playGame();
-        //     winCon = checkWin();
-        // }
         await playGame();
     } catch (error) {
         console.error(error);
@@ -179,6 +174,24 @@ async function startGame(message) {
 }
 
 async function createChannels(guild) {
+    var mafia = getPlayersByRole('Mafia');
+    var mafiaPermissions = {
+        type: 'text',
+        permissionOverwrites: [
+            {
+                id: guild.id,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: mafia[0].ID,
+                allow: ['VIEW_CHANNEL'],
+            },
+            // {
+            //     id: mafia[1].ID,
+            //     allow: ['VIEW_CHANNEL'],  TODO: add back in
+            // },
+        ],
+    }
     var doctor = getPlayersByRole('Doctor')[0];
     var doctorPermissions = {
         type: 'text',
@@ -205,24 +218,6 @@ async function createChannels(guild) {
                 id: cop.ID,
                 allow: ['VIEW_CHANNEL'],
             },
-        ],
-    }
-    var mafia = getPlayersByRole('Mafia');
-    var mafiaPermissions = {
-        type: 'text',
-        permissionOverwrites: [
-            {
-                id: guild.id,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: mafia[0].ID,
-                allow: ['VIEW_CHANNEL'],
-            },
-            // {
-            //     id: mafia[1].ID,
-            //     allow: ['VIEW_CHANNEL'],  TODO: add back in
-            // },
         ],
     }
     var townHallPermissions = {
@@ -259,26 +254,42 @@ async function createChannels(guild) {
         ]
     }
 
-    async function getDocChannel() {
-        const docChannel = await guild.channels.create(String.fromCodePoint(0x1F3E5) + " doctor", doctorPermissions);
-        return docChannel;
-    }
     async function getMafiaChannel() {
-        const mafiaChannel = await guild.channels.create(String.fromCodePoint(0x1F52A) + " mafia", mafiaPermissions);
-        return mafiaChannel;
+        try {
+            const mafiaChannel = await guild.channels.create(String.fromCodePoint(0x1F52A) + " mafia", mafiaPermissions);
+            return mafiaChannel;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    async function getDocChannel() {
+        try {
+            const docChannel = await guild.channels.create(String.fromCodePoint(0x1F3E5) + " doctor", doctorPermissions);
+            return docChannel;
+        } catch (error) {
+            console.error(error);
+        }
     }
     async function getCopChannel() {
-        const copChannel = await guild.channels.create(String.fromCodePoint(0x1F575) + " cop", copPermissions);
-        return copChannel;
+        try {
+            const copChannel = await guild.channels.create(String.fromCodePoint(0x1F575) + " cop", copPermissions);
+            return copChannel;
+        } catch (error) {
+            console.error(error);
+        }
     }
     async function getTownHallChannel() {
-        const townHallChannel = await guild.channels.create(String.fromCodePoint(0x1F3E1) + " town hall", townHallPermissions);
-        return townHallChannel;
+        try {
+            const townHallChannel = await guild.channels.create(String.fromCodePoint(0x1F3E1) + " town hall", townHallPermissions);
+            return townHallChannel;
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     try {
-        docChannel = await getDocChannel();
         mafiaChannel = await getMafiaChannel();
+        docChannel = await getDocChannel();
         copChannel = await getCopChannel();
         townHallChannel = await getTownHallChannel();
     } catch (error) {
@@ -287,150 +298,139 @@ async function createChannels(guild) {
 
 }
 
-async function playGame() {  //TODO: figure out how to run async func in series
-    try {
-        await dayTime();
-    } catch (error) {
-        console.error(error);
-    }
+async function playGame() {
+    let destination = client.channels.cache.get(townHallChannel.id);
+    destination.send("Everyone, Go to sleep.");
+    await sleep(3000);
+
+    // var winCon = checkWin();
+    // while (winCon == 0) {  // TODO: Loop this under conditionals until mafia win or village win.
+    //     await mafiaTurn();
+    //     winCon = checkWin();
+    // }
+    
+    await mafiaTurn();
+
 }
 
 async function mafiaTurn() {
     villagers = getPlayersByTeam('Village');
     mafia = getPlayersByTeam('Mafia');
 
-    try {
-        let counter = 0;
-        let filter = m => !m.author.bot;
-        let destination = client.channels.cache.get(mafiaChannel.id);
-        let collector = destination.createMessageCollector(filter, { time: 30000 });
+    let counter = 0;
+    let filter = m => !m.author.bot;
+    let destination = client.channels.cache.get(mafiaChannel.id);
+    let collector = destination.createMessageCollector(filter, { time: 60000 });
 
-        destination.send("Mafia, Wake up.");
-        destination.send("You have 30 seconds to decide. Who do you wish to target?");
-        
-        var i = 0;
-        for (user in villagers) {
-            destination.send("Press " + i + " to kill " + villagers[user].USERNAME);
-            i++;
-        }
-
-        collector.on('collect', m => {
-            console.log(`Collected ${m.content}`);
-            destination.send("You have selected to kill " + villagers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: villager selection ambiguity case string not int within range
-            killPlayer(villagers[parseInt(m.content, 10)]);
-            counter ++;
-            if (counter === 1) {
-                collector.stop();
-            }
-        });
-        collector.on('end', collected => {
-            destination.send("Ending Mafia Turn... go back to sleep.");
-        });
-    } catch (error) {
-        console.error(error);
+    destination.send("Mafia, Wake up.");
+    destination.send("You have 60 seconds to decide. Who do you wish to target?");
+    
+    var i = 0;
+    for (user in villagers) {
+        destination.send("Press " + i + " to kill " + villagers[user].USERNAME);
+        i++;
     }
 
+    collector.on('collect', m => {
+        console.log(`Collected ${m.content}`);
+        destination.send("You have selected to kill " + villagers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: villager selection ambiguity case string not int within range
+        killPlayer(villagers[parseInt(m.content, 10)]);
+        counter ++;
+        if (counter === 1) {
+            collector.stop();
+        }
+    });
+    collector.on('end', collected => {
+        (async () => { await destination.send("Ending Mafia Turn... go back to sleep."); await doctorTurn(); })();
+    });
+    
 }
 
 async function doctorTurn() {
     doctor = getPlayersByRole('Doctor');
     alivePlayers = getAlivePlayers();
 
-    try {
-        mafiaTurn();
-        let counter = 0;
-        let filter = m => !m.author.bot;
-        let destination = client.channels.cache.get(docChannel.id);
-        let collector = destination.createMessageCollector(filter, { time: 30000 });
-        
-        destination.send("Doctor, wake up.");
-        destination.send("You have 30 seconds to decide. Who do you wish to save tonight?");
-        
-        var i = 0;
-        for (user in alivePlayers) {
-            destination.send("Press " + i + " to heal " + alivePlayers[user].USERNAME);
-            i++;
-        }
-
-        collector.on('collect', m => {
-            console.log(`Collected ${m.content}`);
-            destination.send("You have selected to save " + alivePlayers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: player selection ambiguity case string not int within range, AND doctor self heal limit to one
-            savePlayer(alivePlayers[parseInt(m.content, 10)]);
-            counter ++;
-            if (counter === 1) {
-                collector.stop();
-            }
-        });
-        collector.on('end', collected => {
-            destination.send("Ending Doctor Turn... go back to sleep.");
-        });
-    } catch (error) {
-        console.error(error);
+    let counter = 0;
+    let filter = m => !m.author.bot;
+    let destination = client.channels.cache.get(docChannel.id);
+    let collector = destination.createMessageCollector(filter, { time: 30000 });
+    
+    destination.send("Doctor, wake up.");
+    destination.send("You have 30 seconds to decide. Who do you wish to save tonight?");
+    
+    var i = 0;
+    for (user in alivePlayers) {
+        destination.send("Press " + i + " to heal " + alivePlayers[user].USERNAME);
+        i++;
     }
+
+    collector.on('collect', m => {
+        console.log(`Collected ${m.content}`);
+        destination.send("You have selected to save " + alivePlayers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: player selection ambiguity case string not int within range, AND doctor self heal limit to one
+        savePlayer(alivePlayers[parseInt(m.content, 10)]);
+        counter ++;
+        if (counter === 1) {
+            collector.stop();
+        }
+    });
+    collector.on('end', collected => {
+        (async () => { await destination.send("Ending Doctor Turn... go back to sleep."); await copTurn(); })();
+    });
 
 }
 
 async function copTurn() {
     Cop = getPlayersByRole('Cop');
     alivePlayers = getAlivePlayers();
-    
-    try {
-        doctorTurn();
-        let counter = 0;
-        let filter = m => !m.author.bot;
-        let destination = client.channels.cache.get(copChannel.id);
-        let collector = destination.createMessageCollector(filter, { time: 30000 });
 
-        destination.send("Cop, wake up.");
-        destination.send("You have 30 seconds to decide. Who do you want to investigate to see which team they are on.")
+    let counter = 0;
+    let filter = m => !m.author.bot;
+    let destination = client.channels.cache.get(copChannel.id);
+    let collector = destination.createMessageCollector(filter, { time: 30000 });
 
-        var i = 0;
-        for (user in alivePlayers) {
-            destination.send("Press " + i + " to investigate " + alivePlayers[user].USERNAME);
-            i++;
-        }
+    destination.send("Cop, wake up.");
+    destination.send("You have 30 seconds to decide. Who do you want to investigate to see which team they are on.")
 
-        collector.on('collect', m => {
-            console.log(`Collected ${m.content}`);
-            destination.send("You have selected to investigate " + alivePlayers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: player selection ambiguity case string not int within range, AND doctor self heal limit to one
-            destination.send(alivePlayers[parseInt(m.content, 10)].USERNAME + " is on team " + investigatePlayer(alivePlayers[parseInt(m.content, 10)]));
-            counter ++;
-            if (counter === 1) {
-                collector.stop();
-            }
-        });
-        collector.on('end', collected => {
-            destination.send("Ending Cop Turn... go back to sleep.");
-        });
-    } catch (error) {
-        console.error(error);
+    var i = 0;
+    for (user in alivePlayers) {
+        destination.send("Press " + i + " to investigate " + alivePlayers[user].USERNAME);
+        i++;
     }
+
+    collector.on('collect', m => {
+        console.log(`Collected ${m.content}`);
+        destination.send("You have selected to investigate " + alivePlayers[parseInt(m.content, 10)].USERNAME + " tonight."); // TODO: player selection ambiguity case string not int within range, AND doctor self heal limit to one
+        destination.send(alivePlayers[parseInt(m.content, 10)].USERNAME + " is on team " + investigatePlayer(alivePlayers[parseInt(m.content, 10)]));
+        counter ++;
+        if (counter === 1) {
+            collector.stop();
+        }
+    });
+    collector.on('end', collected => {
+        (async () => { await destination.send("Ending Cop Turn... go back to sleep."); await dayTime(); })();
+    });
 
 }
 
 async function dayTime() {
-    
-    try {
-        copTurn();
-        let destination = client.channels.cache.get(townHallChannel.id);
-        let collector = destination.createMessageCollector(filter, { time: 30000 });
-        var alivePlayers = getAlivePlayers();
-        var i = 0;
+    let destination = client.channels.cache.get(townHallChannel.id);
+    let collector = destination.createMessageCollector(filter, { time: 30000 });
+    var alivePlayers = getAlivePlayers();
+    var i = 0;
 
-        destination.send("Good morning");
-        if (lastDeath == null){
-            destination.send("Luckily, no one was killed last night.")
-        } else {
-            destination.send("Unfortunately, " + lastDeath + " was killed last night.");
-            lastDeath = null;
-        }
-        destination.send("You now have two minutes to decide on a course of action. A simple majority is needed to execute someone. If a majority can not be reached, no one will be executed.")
-        for (player in alivePlayers) {
-            destination.send("Press " + i + " to kill " + alivePlayers[player].USERNAME);
-        }
-    } catch (erorr) {
-        console.error(error);
+    await sleep(10000);
+    destination.send("Good morning");
+    if (lastDeath == null){
+        destination.send("Luckily, no one was killed last night.")
+    } else {
+        destination.send("Unfortunately, " + lastDeath + " was killed last night.");
+        lastDeath = null;
     }
+    destination.send("You now have two minutes to decide on a course of action. A simple majority is needed to execute someone. If a majority can not be reached, no one will be executed.")
+    for (player in alivePlayers) {
+        destination.send("Press " + i + " to kill " + alivePlayers[player].USERNAME);
+    }
+
 }
 
 async function deleteChannels() {
@@ -438,8 +438,8 @@ async function deleteChannels() {
     destination.send("The text channels will be deleted in 5 seconds");
     await sleep(5000);
     try {
-        await docChannel.delete();
         await mafiaChannel.delete();
+        await docChannel.delete();
         await copChannel.delete();
         await townHallChannel.delete();
     } catch (error) {
@@ -524,6 +524,8 @@ module.exports = {
                     (async function(){
                         await deleteChannels();
                     })();
+                    players = [];
+                    gameStarted = false;
                     break;
 
                 default:
