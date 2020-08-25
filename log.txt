@@ -33,3 +33,8 @@ Version 1.0.8 (11:00 Aug. 07, 2020)
     -Removed savePlayer function. Players are now killed at the end of the cop turn, removing the case of needing to save a possible mafia target
     -Added several TODO's to tackle for next time
     -Added documentation for functions in game.js
+
+Version 1.1.0 (9:00 Aug. 24, 2020)
+    -Removed unecessary code and files
+    -Updated hard coded methods to allow for 6 Players
+    -Removed methods that were designed for testing purposes

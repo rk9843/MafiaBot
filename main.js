@@ -46,14 +46,6 @@ client.on('message', message => {
             client.commands.get('info').execute(message, args);
             break;
 
-        case 'quit':
-            client.commands.get('quit').execute(message, args);
-            break;
-
-        // case 'delete':
-        //     client.commands.get('delete').execute(message, args);
-        //     break;
-
         default:
             message.channel.send("Invalid Arguments.");
             break;
